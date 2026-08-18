@@ -1,0 +1,8 @@
+# Единые переводы строк в репозитории: в git всегда LF,
+# в рабочей копии — как принято в системе.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.gz binary
+*.parquet binary

@@ -1,5 +1,9 @@
 # traffic-engine
 
+[![CI](https://github.com/EvgeniyPusser/traffic-engine/actions/workflows/ci.yml/badge.svg)](https://github.com/EvgeniyPusser/traffic-engine/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)](pyproject.toml)
+
 **Travel time is a distribution, not a number.**
 
 A navigation app tells you `Estimated travel time: 54 minutes`. That number is an
