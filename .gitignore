@@ -1,0 +1,29 @@
+# Данные никогда не попадают в git — они большие и не наши
+data/raw/*
+data/interim/*
+data/processed/*
+!data/**/.gitkeep
+!data/README.md
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+dist/
+build/
+
+# Окружение
+.env
+.env.local
+
+# Редакторы
+.idea/
+.vscode/
+.DS_Store
+
+# Ноутбуки — чистим вывод перед коммитом
+.ipynb_checkpoints/
