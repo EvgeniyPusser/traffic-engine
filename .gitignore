@@ -5,6 +5,9 @@ data/processed/*
 !data/**/.gitkeep
 !data/README.md
 
+# Личные заметки и черновики — рядом с проектом, но не в публичном репозитории
+discussions/
+
 # Python
 __pycache__/
 *.py[cod]
