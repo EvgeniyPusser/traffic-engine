@@ -518,6 +518,52 @@ late — which is to say, about τ.
 
 ---
 
+## 2026-08-21 — Where the advantage ends, and prior art named
+
+### The horizon sweep
+
+Freshness is the model's entire capital, and it is spent fast. Gain in pinball
+τ=0.9 over the lookup table, by decision horizon:
+
+| Horizon | 0 | 15 min | 30 min | 60 min | 90 min | 2 h | 3 h | 6 h | 12 h |
+|---|---|---|---|---|---|---|---|---|---|
+| Gain | 86% | 60% | 39% | 17% | 7% | 7% | 12% | 8% | 3% |
+
+**The practical threshold is about ninety minutes.** The feature rankings say it
+without needing the numbers: out to half an hour the model leans on `tt_lag0`;
+from an hour onward day-of-week and time-of-day take the top places, and the
+model is reproducing the lookup table by a more expensive route.
+
+The 12% at three hours is almost certainly single-run noise rather than a real
+bump, and is not worth chasing.
+
+The residual 3–8% beyond two hours is probably not freshness at all. A
+twelve-hour-old reading carries not "what the road is doing" but "what kind of
+day this is" — a hard morning and a hard evening share their cause (weather, an
+event, a school holiday), which would explain why `speed_min` at that lag stays
+in the top four. **That is a hypothesis, not a finding**, and testing it needs an
+explicit "how has today gone so far" feature.
+
+### Prior art, named before someone else names it
+
+The time cushion is not an invention of this project. FHWA has published the
+*buffer index* `(P95 − mean) / mean` and the *planning time index*
+`P95 / free-flow` for two decades. Those are corridor statistics computed
+annually, and they exist to decide where to widen a road.
+
+What is different here, and is the actual contribution: **the quantile follows
+from the cost of being late** through τ rather than being fixed at 95 by
+convention, and **it is computed per departure moment** rather than as a yearly
+figure — which is what turns a planning statistic into an answer to *when do I
+leave*.
+
+One deliberate deviation, stated before it is asked about: the buffer reported
+throughout is `P95 − P50`, not `P95 − mean`. The mean is the very quantity this
+project argues against; the median is what a traveller experiences as a normal
+trip.
+
+---
+
 ## Open questions
 
 - Four months is still thin for P95 — the tail rests on a handful of events.

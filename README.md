@@ -79,6 +79,21 @@ At an hour's notice the boosted model cuts the loss 17% below the lookup table
 promised. In the morning peak that is about four minutes less waiting for the
 same promise.
 
+**Where the advantage ends.** Freshness is the model's whole capital, and it is
+spent quickly. Gain over the lookup table by horizon: 86% at 0 minutes, 39% at
+30, 17% at 60, **7% at 90**, and 3% at twelve hours. The feature rankings say the
+same thing without words — past an hour, day-of-week and time-of-day rise to the
+top and the model is doing what the lookup table already does, only in a more
+complicated way.
+
+So the product rule is:
+
+```
+less than ~90 minutes to departure  →  the model, fresh sensor data pays
+more                                →  the calendar answer; the model adds
+                                       percentage points, not minutes
+```
+
 Three results worth more than the win itself:
 
 - **The single number is late on one trip in four** while promising nine in ten
@@ -141,6 +156,24 @@ So `P90` means precisely: *being one minute late hurts nine times more than
 standing idle for one minute.* Different jobs have different ratios, and
 therefore different quantiles. You compute τ from your own economics; you do not
 pick it because it is a round number.
+
+**Prior art, stated plainly.** The idea of a time cushion is not new here.
+Transportation engineering has measured it for two decades: the FHWA *buffer
+index* is `(P95 − mean) / mean` and the *planning time index* is
+`P95 / free-flow time`. Those are corridor statistics, computed annually, and
+they exist to decide where to widen a road.
+
+Two things are different here, and they are the contribution:
+
+1. **The quantile follows from the cost of being late**, through τ, instead of
+   being fixed at 95 by convention.
+2. **It is computed per departure moment**, not as a yearly figure for the
+   corridor — which is what turns a planning statistic into an answer to
+   *"when do I leave?"*.
+
+One deliberate deviation: the buffer reported below is `P95 − P50`, not
+`P95 − mean`. The mean is the very quantity this project argues against, and the
+median is what a traveller actually experiences as a normal trip.
 
 This is also why the models here are fit with **pinball loss** rather than
 squared error. Squared error asks for the mean. Asymmetric absolute error asks
