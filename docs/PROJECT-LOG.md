@@ -277,11 +277,138 @@ where the baseline will lose.
 
 ---
 
+---
+
+## 2026-08-21 — Four months, and a corridor that fell apart
+
+120 days of District 7 downloaded by hand, January through April 2026. 121 files,
+2.2 GB compressed.
+
+### Finding 5: detector networks decay, and a selection made once goes stale
+
+Three consecutive stations of the fifteen — `IRWINDALE 2`, `VERNON`, `AZUSA 1` —
+went silent **on 16 February 2026, all three on the same day**, and never
+returned through 30 April.
+
+| Date | 717675 | 717676 | 717678 |
+|---|---|---|---|
+| 12–15 Feb | 100% | 100% | 100% |
+| **16 Feb** | **0%** | **0%** | **0%** |
+| 17 Feb – 30 Apr | 0% | 0% | 0% |
+
+The simultaneity matters more than the failure. Three adjacent detectors do not
+fail independently on the same morning; one controller cabinet did. Their
+neighbours on both sides held 100% throughout.
+
+The general lesson is worth more than the incident: **`pct_observed` is a state
+on a date, not a property of a station.** A corridor chosen on one week of data
+can be invalid by the third month. Station selection has to be validated over
+the same period the work will use.
+
+### The cut, and what it cost
+
+The chain was shortened to **twelve stations** — same endpoints, same 9.34 miles.
+Both chains measured on the same January, on 8,610 common departure slots:
+
+| | P50 | P90 | P95 | mean |
+|---|---|---|---|---|
+| 15 stations | 8.90 | 13.96 | 19.12 | 10.39 |
+| 12 stations | 8.93 | 14.23 | 19.47 | 10.51 |
+
+Paired difference: mean **+0.12 min**, sd 0.47. The shorter chain reads slightly
+slower, as expected — a long segment is traversed entirely at its entry speed,
+and the entry sits upstream of congestion more often than downstream.
+
+The real cost is spatial, not statistical: **the largest gap grew from 1.24 to
+1.84 miles**. Within the 2-mile threshold, but this is now the weakest point of
+the method and is named as such in the README. Eight seconds of mean bias in
+exchange for two additional months of data is not a close call.
+
+### A second quality gate, at the day level
+
+A station can be healthy on average and fail a particular day. Days are now kept
+only if corridor `pct_observed` ≥ 95% (`MIN_DAY_OBSERVED`). **108 days of 120**
+survive; mean corridor observability on those is 99.5%.
+
+The gate caught 16 February on its own — the day the cabinet died — without being
+told to look for it.
+
+### Result on four months
+
+30,981 virtual trips over 108 days:
+
+| | Jan (15 st.) | Jan–Apr (12 st.) |
+|---|---|---|
+| free flow | 8.0 | 8.0 |
+| P50 | 8.9 | 8.8 |
+| P90 | 14.0 | 16.0 |
+| P95 | 19.3 | 20.8 |
+| P99 | 31.2 | 30.4 |
+| max | 43.2 | 50.0 |
+| buffer P95 − P50 | 10.4 (117%) | **11.9 (135%)** |
+
+The centre of the distribution did not move. The tail did — which is exactly the
+expected shape of the correction: rare events only become visible on a long
+sample. January's worst trip was 43 minutes; four months contain a 50.
+
+The chart also revealed structure invisible in January: a **second risk hump
+between roughly 09:30 and 11:00**, where the median has already fallen back to
+ten minutes while P90–P95 still reaches 23. The morning jam has cleared on most
+days by ten — and on roughly one day in ten it has not. No single number,
+mean or median, represents that hour.
+
+---
+
+## 2026-08-21 — The baseline, re-run on four months
+
+Temporal split: train 1 Jan – 18 Mar (20,076), validation 19 Mar – 8 Apr (4,591),
+test 9–30 Apr (6,314). The test period was untouched until this run.
+
+| Grouping | Cells | Thin | Obs./cell | pinball τ=0.9 | P50 cov. | P90 | P95 |
+|---|---|---|---|---|---|---|---|
+| single number (10.7 min) | — | — | — | 1.434 | — | 75.7% | — |
+| weekday/weekend × hour | 48 | 0 | 395 | **0.357** | 49.0% | 93.0% | 97.1% |
+| Mon / Tue-Thu / Fri / Sat / Sun × hour | 120 | 0 | 120 | 0.422 | 49.3% | 92.4% | 95.7% |
+| day of week × hour | 216 | 48 | 120 | 0.442 | 50.0% | **89.6%** | 92.6% |
+
+Quantile crossing: 0% throughout.
+
+**Confirmed.** The thin cells are gone — the January diagnosis ("not the model,
+the sample size") was correct. And the median calibration repaired itself: on
+January the P50 coverage drifted +23.3 points on test, here it is **−1.0**. That
+drift was never a defect of the method, only of a month that is not homogeneous
+inside itself.
+
+**Not confirmed.** The expectation was that with enough data the finer grouping —
+Friday as its own day, which January proved is real — would start winning. It
+still loses on pinball, 0.422 against 0.357.
+
+But it loses differently, and the difference is the interesting part: the coarse
+grouping has the lower loss while systematically over-promising (claims P90,
+covers 93%), and the day-of-week grouping is almost perfectly calibrated (89.6%)
+while carrying a larger loss. **Neither dominates.**
+
+This is not an unfinished experiment; it is a property of lookup tables. A table
+**partitions the data**, and each cell sees only its own rows. Split finer and
+the day-of-week structure is described better but every estimate rests on fewer
+examples. Split coarser and the estimates stabilise but Friday is averaged with
+Wednesday. There is no setting that escapes the trade — the escape is a model
+that partitions *features* instead of *data*. Gradient boosting lets every tree
+see all 20,000 training trips and decide for itself where to cut, so Friday can
+receive its own correction estimated from the whole sample.
+
+That is precisely where the baseline ends and the model begins.
+
+---
+
 ## Open questions
 
-- One month is thin for P95. Three to six months would make the tail credible.
-- Station metadata is dated July 2026 while measurements are January 2026. All
-  1916 stations matched, but this should be checked against the older metadata
-  file for stations that moved.
+- Four months is still thin for P95 — the tail rests on a handful of events.
+- The 1.84-mile gap is unverifiable from within the data.
+- Whether the corridor's stations are single- or double-loop is still unchecked.
+  On single loops speed is inferred from flow and occupancy, not measured.
+- Station metadata is dated July 2026 while measurements are January–April 2026.
+  All stations matched, but this should be checked against an older metadata file
+  for stations that moved.
 - Whether the boosted model beats a well-smoothed empirical baseline at all is
   genuinely open. If it does not, that is a result and will be written up as one.

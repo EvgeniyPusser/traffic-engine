@@ -27,18 +27,74 @@ buffer        32 min      P95 − P50: what you must add to be reliably on time
 
 ## Status
 
-**Stage 1 of 3 — data ingestion and quality assessment.** No model has been
-trained yet and no results are claimed yet.
+**Stage 2 of 3 complete — labelled dataset and baseline.** No learned model has
+been trained yet; every number below comes from measurement or from an empirical
+lookup table.
 
 | Stage | | |
 |---|---|---|
-| 1 | Ingestion, schema, data quality report | in progress |
-| 2 | Virtual trips → labelled dataset; baseline | not started |
-| 3 | Quantile models, temporal validation, write-up | not started |
+| 1 | Ingestion, schema, data quality report | done |
+| 2 | Virtual trips → labelled dataset; baseline | done |
+| 3 | Quantile models, temporal validation, write-up | in progress |
 
-What works today: reading raw PeMS `station_5min` and station-metadata files,
-and producing an honest quality report on what is measured versus what PeMS
-imputed.
+---
+
+## Results so far
+
+**Corridor:** SR-210 West, Myrtle Ave → Sunflower Ave, 9.34 miles, 12 detector
+stations. **Period:** January–April 2026, 108 usable days of 120, **30,981
+virtual trips**.
+
+| | minutes |
+|---|---|
+| free flow | 8.0 |
+| P50 | 8.8 |
+| P90 | 16.0 |
+| P95 | 20.8 |
+| P99 | 30.4 |
+| worst trip observed | 50.0 |
+| **buffer P95 − P50** | **11.9 (135% on top of the typical trip)** |
+
+To arrive on time nineteen trips out of twenty you must budget more than double
+what the trip usually takes. A navigation app reports about ten minutes.
+
+**Baseline against a single number**, measured on April, which was untouched
+until the run:
+
+| | P90 coverage | pinball τ = 0.9 |
+|---|---|---|
+| one number for the whole day, as a navigator reports | 75.7% | 1.434 |
+| empirical quantiles by (day type × hour) | 93.0% | **0.357** |
+
+The single number is late on **one trip in four** while promising nine in ten.
+A lookup table that knows nothing but the hour and whether it is a workday cuts
+the quantile loss fourfold.
+
+Full working notes, including the results that came out against expectation, are
+in [`docs/PROJECT-LOG.md`](docs/PROJECT-LOG.md). The distribution chart is
+[`docs/sr210-travel-time.html`](docs/sr210-travel-time.html).
+
+---
+
+## Known weaknesses
+
+Stated here rather than buried, because a result whose limits are not named is
+not a result.
+
+- **A 1.84-mile gap.** Three consecutive detectors on the corridor died on
+  16 February 2026 — one controller cabinet, three stations, the same morning —
+  and never returned. The chain was cut from 15 stations to 12 to recover March
+  and April. That stretch is now traversed entirely at its entry speed, and there
+  is nothing in the data to check it against. Cost measured on identical January
+  slots: +0.12 min mean bias.
+- **Loop type unverified.** Double-loop stations measure speed directly;
+  single-loop stations infer it from flow and occupancy assuming an average
+  vehicle length, which biases with truck share. Which type this corridor uses
+  has not been established.
+- **Four months is thin for P95.** A tail estimate rests on rare events, and four
+  months hold few of them.
+- **One corridor.** Nothing here generalises to Los Angeles without being
+  re-measured.
 
 ---
 
@@ -197,16 +253,23 @@ uv run traffic-engine meta data/raw/d07_text_meta_2025_03_14.txt --freeway 405 -
 
 ```
 src/traffic_engine/
-  config.py              paths, corridor definition, timezone
+  config.py              paths, corridor definition, quality thresholds
   ingestion/
     station_5min.py      the 5-minute loader; column count → schema
     meta.py              station metadata; ordering stations by postmile
   quality/
     profile.py           what is measured vs. what PeMS imputed
+  features/
+    trips.py             virtual trips: speeds taken at arrival, not departure
+  models/
+    baseline.py          empirical quantile lookup, with a thin-cell fallback
+  evaluation/
+    metrics.py           pinball loss, coverage, quantile crossing
+    split.py             chronological train/validation/test, split on whole days
   cli.py                 profile, meta
 tests/                   synthetic fixtures; format parsing, not road behaviour
 data/                    gitignored
-notebooks/               exploration only, never production logic
+docs/                    working notes and the distribution chart
 ```
 
 ---
