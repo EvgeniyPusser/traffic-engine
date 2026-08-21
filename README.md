@@ -27,15 +27,14 @@ buffer        32 min      P95 − P50: what you must add to be reliably on time
 
 ## Status
 
-**Stage 2 of 3 complete — labelled dataset and baseline.** No learned model has
-been trained yet; every number below comes from measurement or from an empirical
-lookup table.
+**Stage 3 of 3 — models trained and evaluated on a held-out month.**
 
 | Stage | | |
 |---|---|---|
 | 1 | Ingestion, schema, data quality report | done |
 | 2 | Virtual trips → labelled dataset; baseline | done |
-| 3 | Quantile models, temporal validation, write-up | in progress |
+| 3 | Quantile models, temporal validation | done |
+| 4 | Write-up and an interactive page | in progress |
 
 ---
 
@@ -58,20 +57,44 @@ virtual trips**.
 To arrive on time nineteen trips out of twenty you must budget more than double
 what the trip usually takes. A navigation app reports about ten minutes.
 
-**Baseline against a single number**, measured on April, which was untouched
-until the run:
+### Models, measured on April — held out until the final run
 
-| | P90 coverage | pinball τ = 0.9 |
-|---|---|---|
-| one number for the whole day, as a navigator reports | 75.7% | 1.434 |
-| empirical quantiles by (day type × hour) | 93.0% | **0.357** |
+The question is not *"I am leaving now, how long will it take"* — on a 9-mile
+corridor that is a sensor reading, not a forecast, and the current corridor speed
+answers it with correlation 0.99. The question is **"I must arrive by eight, when
+do I leave"**, so every model below is evaluated at a decision **horizon**: the
+decision is taken `h` minutes before departure and may use nothing measured after
+that moment.
 
-The single number is late on **one trip in four** while promising nine in ten.
-A lookup table that knows nothing but the hour and whether it is a workday cuts
-the quantile loss fourfold.
+Pinball loss at τ = 0.9, lower is better:
 
-Full working notes, including the results that came out against expectation, are
-in [`docs/PROJECT-LOG.md`](docs/PROJECT-LOG.md). The distribution chart is
+| Horizon | single number | lookup table | linear QR | GBM, calendar only | **GBM** |
+|---|---|---|---|---|---|
+| 0 min | 1.433 | 0.357 | 0.054 | 0.424 | **0.050** |
+| 30 min | 1.433 | 0.357 | 0.352 | 0.407 | **0.218** |
+| **60 min** | 1.433 | 0.357 | 0.578 | 0.409 | **0.296** |
+
+At an hour's notice the boosted model cuts the loss 17% below the lookup table
+**and** is better calibrated — 89.6% coverage against 92.9% where 90% was
+promised. In the morning peak that is about four minutes less waiting for the
+same promise.
+
+Three results worth more than the win itself:
+
+- **The single number is late on one trip in four** while promising nine in ten
+  (75.7% coverage).
+- **The gain comes from the feature, not the model.** Boosting on calendar
+  features alone *loses* to the lookup table at every horizon. All of the
+  improvement comes from one new input: what the corridor was doing in the
+  half-hour before the decision. The prediction that boosting would win was
+  right; the reason given for it was wrong, and that is written up as such.
+- **Quantile crossing is reported before it is repaired** — up to 20% of rows at
+  zero horizon. Sorting fixes it, and hiding it behind the sort would have
+  concealed a real property of training one model per τ.
+
+Full model report: [`docs/model-results.md`](docs/model-results.md). Working
+notes, including every result that came out against expectation, are in
+[`docs/PROJECT-LOG.md`](docs/PROJECT-LOG.md). The distribution chart is
 [`docs/sr210-travel-time.html`](docs/sr210-travel-time.html).
 
 ---
@@ -95,6 +118,9 @@ not a result.
   months hold few of them.
 - **One corridor.** Nothing here generalises to Los Angeles without being
   re-measured.
+- **Calibration is an average.** The model hits 89.6% coverage across the day and
+  87.2% inside the morning peak, where accuracy matters most. A per-hour
+  correction would fix this and was not done.
 
 ---
 
@@ -153,11 +179,17 @@ Taking all station speeds at the same instant instead would introduce a
 systematic bias, and correlation between segments would be lost — which is
 precisely the quantity that matters most here.
 
+**Horizon.** Every model is evaluated at a decision horizon `h`: the decision is
+made at `t`, departure happens at `t + h`, and no feature may use anything
+measured after `t`. Without this the task collapses into a sensor reading — see
+the model report.
+
 **Models,** simplest first, each compared honestly against the last:
 
-1. **Baseline** — empirical quantiles of historical travel time by (day of week ×
-   5-minute slot). No learning, just a lookup table. This is the bar to beat.
-2. **Quantile regression** with pinball loss.
+1. **Baseline** — empirical quantiles of historical travel time by (day type ×
+   hour). No learning, just a lookup table. This is the bar to beat.
+2. **Quantile regression** with pinball loss — same features as the boosted
+   model, almost none of the flexibility, which is what isolates the two.
 3. **Gradient boosting** (LightGBM) with quantile objective, one model per τ.
 
 **Validation.** Strictly chronological — train on the earliest period, validate
@@ -261,8 +293,12 @@ src/traffic_engine/
     profile.py           what is measured vs. what PeMS imputed
   features/
     trips.py             virtual trips: speeds taken at arrival, not departure
+    state.py             calendar + corridor state; the forecast horizon
   models/
     baseline.py          empirical quantile lookup, with a thin-cell fallback
+    quantile_linear.py   linear quantile regression on pinball loss
+    quantile_gbm.py      LightGBM, quantile objective, one model per tau
+    postprocess.py       sorting away quantile crossing
   evaluation/
     metrics.py           pinball loss, coverage, quantile crossing
     split.py             chronological train/validation/test, split on whole days

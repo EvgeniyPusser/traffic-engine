@@ -401,6 +401,123 @@ That is precisely where the baseline ends and the model begins.
 
 ---
 
+## 2026-08-21 — Models, and a prediction of mine that was right for the wrong reason
+
+### Finding 6: at zero horizon this is not forecasting
+
+The first quantile model returned pinball τ=0.9 of **0.054** against the lookup
+table's 0.357 — a sevenfold improvement. That is a number to audit, not to
+celebrate.
+
+`tt_lag0` — corridor travel time computed from the speeds at the moment of
+departure — correlates **0.991** with the label; the two differ by less than a
+minute on 94.8% of rows. There is no leakage: those speeds genuinely are
+measured by departure time. But the corridor is short, a trip lasts 9–20 minutes,
+and conditions barely move in that window. The answer was already sitting in the
+feature.
+
+Posed that way the task is a measurement, not a prediction. *"I am leaving right
+now, how long will it take"* is a question for a sensor.
+
+The project's actual question is *"I must arrive by eight — when do I leave"*,
+and at the moment that decision is taken, the departure-time speeds do not exist
+yet. So the task was restated with a **horizon `h`**: the decision is made at
+`t`, departure happens at `t + h`, state features are read at `t`, the label
+comes from the trip departing at `t + h`. The calendar stays at departure time —
+it is known a year ahead. Implemented as `features.state.forecast_matrix`, with
+a test that corrupting the future leaves past features bit-identical.
+
+### Results on April, pinball τ = 0.9
+
+| Horizon | single number | lookup | linear QR | GBM, calendar only | **GBM** |
+|---|---|---|---|---|---|
+| 0 min | 1.433 | 0.357 | 0.054 | 0.424 | **0.050** |
+| 15 min | 1.433 | 0.357 | 0.198 | 0.409 | **0.141** |
+| 30 min | 1.433 | 0.357 | 0.352 | 0.407 | **0.218** |
+| **60 min** | 1.433 | 0.357 | 0.578 | 0.409 | **0.296** |
+
+P90 coverage at 60 minutes: lookup 92.9%, GBM **89.6%**. The lookup has no
+horizon — it reads only the calendar — which makes its row a convenient ruler.
+
+**Boosting wins at every horizon out to an hour, on both criteria at once**:
+17% less loss than the lookup and better calibrated. The baseline write-up had
+recorded that no grouping of the lookup table dominates on both. This does.
+
+### Finding 7: my explanation of *why* it would win was wrong
+
+`baseline-results.md` argued that the lookup table is limited because it
+**partitions data** while boosting **partitions features**, every tree seeing the
+whole sample — and predicted the win would come from that flexibility.
+
+Measured separately, it does not. Boosting trained on calendar features alone
+**loses** to the lookup at every horizon: 0.409 against 0.357 at 60 minutes, with
+coverage drifting to 95.3%.
+
+Obvious in hindsight: the lookup table is already a saturated non-parametric fit
+of the calendar — each cell carries its own empirical quantile, and nothing can
+describe (day type × hour) more precisely than that. Trees have nothing to add
+there, and their smoothing across cells actively hurts.
+
+**The entire gain comes from the new feature, not from the new model.** 0.409 on
+calendar alone → 0.296 once corridor state is added. The prediction was right
+about the outcome and wrong about the mechanism, and the mechanism is the part
+worth knowing.
+
+### Finding 8: non-linearity earns its keep only at distance
+
+Linear quantile regression and boosting receive **identical features**; the only
+difference is model flexibility. The gap between them widens monotonically with
+the horizon: 8% at 0 minutes, 29% at 15, 38% at 30, **49% at 60**.
+
+At zero horizon the answer is nearly `tt_lag0` itself — a linear relationship, and
+a linear model suffices. The further ahead the decision, the less direct the link
+between "what the road looked like an hour ago" and "how long it will take".
+
+Worth stating plainly: at a 60-minute horizon **the linear model loses even to the
+lookup table** (0.578 vs 0.357). Stale corridor state is worse than an honest
+"this is how this hour usually goes" unless you can relate the two non-linearly.
+
+### Quantile crossing is a real defect, reported before it is repaired
+
+Separate models per τ know nothing of each other. Share of rows where the
+predicted quantiles are out of order:
+
+| Horizon | linear QR | GBM |
+|---|---|---|
+| 0 min | 0.11% | **20.27%** |
+| 15 min | 0.33% | 5.40% |
+| 30 min | 1.22% | 4.69% |
+| 60 min | 1.77% | 3.75% |
+
+One row in five at zero horizon asserts that more trips fall below the 90th
+percentile than below the 95th. Repaired by sorting the three numbers per row
+(`models/postprocess.py`), which cannot hurt: swapping a violating pair lowers
+the pinball loss for both τ simultaneously. Crossing is 0% afterwards.
+
+The pre-repair figure is published deliberately. Hiding it behind the sort would
+conceal how inconsistently three independently trained models behave — which is a
+property of the approach the reader is entitled to know.
+
+### What it means in minutes
+
+Morning peak of the test period, weekdays 06:00–10:00, 768 trips, 60-minute
+horizon:
+
+| | P90 promise | actual coverage |
+|---|---|---|
+| lookup | 27.25 min | 93.5% |
+| GBM | 23.37 min | 87.2% |
+
+The lookup asks for four minutes more than needed and covers 93.5% against the
+90 it promises — wasted waiting. The model asks for less and slightly
+under-covers at 87.2%, though across the full day it is calibrated at 89.6%.
+
+The model buys roughly four minutes in the peak and pays two to three points of
+coverage there. Which of those you prefer is a question about the cost of being
+late — which is to say, about τ.
+
+---
+
 ## Open questions
 
 - Four months is still thin for P95 — the tail rests on a handful of events.
