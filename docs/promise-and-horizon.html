@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SR-210 West — держится ли обещание и как долго</title>
+<style>
+  :root { color-scheme: light dark; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 28px 20px 44px;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: var(--page); color: var(--ink);
+  }
+  .viz-root {
+    --page:        #f9f9f7;
+    --surface-1:   #fcfcfb;
+    --ink:         #0b0b0b;
+    --ink-2:       #52514e;
+    --muted:       #898781;
+    --grid:        #e1e0d9;
+    --axis:        #c3c2b7;
+    --border:      rgba(11,11,11,0.10);
+    --over:        #2a78d6;   /* перестраховывается */
+    --under:       #e34948;   /* недобирает */
+    --neutral:     #f0efec;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) .viz-root {
+      --page:      #0d0d0d;
+      --surface-1: #1a1a19;
+      --ink:       #ffffff;
+      --ink-2:     #c3c2b7;
+      --muted:     #898781;
+      --grid:      #2c2c2a;
+      --axis:      #383835;
+      --border:    rgba(255,255,255,0.10);
+      --over:      #3987e5;
+      --under:     #e66767;
+      --neutral:   #383835;
+    }
+  }
+  :root[data-theme="dark"] .viz-root {
+      --page:      #0d0d0d;
+      --surface-1: #1a1a19;
+      --ink:       #ffffff;
+      --ink-2:     #c3c2b7;
+      --muted:     #898781;
+      --grid:      #2c2c2a;
+      --axis:      #383835;
+      --border:    rgba(255,255,255,0.10);
+      --over:      #3987e5;
+      --under:     #e66767;
+      --neutral:   #383835;
+  }
+  .wrap { max-width: 1020px; margin: 0 auto; }
+  h1 { font-size: 25px; line-height: 1.25; margin: 0 0 6px; font-weight: 600; letter-spacing: -0.01em; }
+  h2 { font-size: 18px; line-height: 1.3; margin: 0 0 4px; font-weight: 600; }
+  .sub { color: var(--ink-2); font-size: 14.5px; line-height: 1.55; margin: 0 0 22px; max-width: 74ch; }
+  .lede { color: var(--ink-2); font-size: 14px; line-height: 1.55; margin: 0 0 14px; max-width: 74ch; }
+  .card {
+    background: var(--surface-1); border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px 18px 14px; margin: 0 0 26px;
+  }
+  .legend { display: flex; flex-wrap: wrap; gap: 16px; margin: 10px 2px 12px; font-size: 12.5px; color: var(--ink-2); }
+  .item { display: inline-flex; align-items: center; gap: 7px; }
+  .sw { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+  svg { display: block; width: 100%; height: auto; overflow: visible; }
+  .tick { font-size: 11.5px; fill: var(--muted); }
+  .cat  { font-size: 13px; fill: var(--ink-2); }
+  .val  { font-size: 12.5px; fill: var(--ink); font-weight: 600; }
+  .note { font-size: 12.5px; color: var(--muted); margin: 14px 2px 0; line-height: 1.55; max-width: 76ch; }
+  .tools { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+  button {
+    font: inherit; font-size: 13px; padding: 7px 13px; border-radius: 8px;
+    border: 1px solid var(--border); background: transparent; color: var(--ink-2); cursor: pointer;
+  }
+  button:hover { color: var(--ink); border-color: var(--axis); }
+  table { border-collapse: collapse; margin-top: 12px; font-size: 13px; width: 100%; }
+  th, td { text-align: right; padding: 6px 10px; border-bottom: 1px solid var(--grid); font-variant-numeric: tabular-nums; }
+  th:first-child, td:first-child { text-align: left; font-variant-numeric: normal; }
+  th { color: var(--muted); font-weight: 500; }
+  .tip {
+    position: fixed; pointer-events: none; opacity: 0; transition: opacity .1s;
+    background: var(--surface-1); color: var(--ink); border: 1px solid var(--border);
+    border-radius: 8px; padding: 8px 11px; font-size: 12.5px; line-height: 1.45;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.13); z-index: 9; max-width: 260px;
+  }
+  .hit { fill: transparent; cursor: default; }
+</style>
+</head>
+<body class="viz-root">
+<div class="wrap">
+
+  <h1>Держится ли обещание — и как долго оно живёт</h1>
+  <p class="sub">
+    SR-210 West, Лос-Анджелес. Проверка на апреле 2026 — периоде, который модель
+    не видела до финального прогона. 6314 поездок.
+  </p>
+
+  <div class="card">
+    <h2>1. Обещали накрыть девять поездок из десяти</h2>
+    <p class="lede">
+      Модель обещает время, в которое уложатся 90% поездок. Вопрос не в точности, а в
+      честности: сколько накрыла на самом деле. Ноль — обещание сдержано в точности.
+      Решение принимается за час до выезда.
+    </p>
+    <div class="legend">
+      <span class="item"><span class="sw" style="background:var(--under)"></span>недобирает — обещание нарушено</span>
+      <span class="item"><span class="sw" style="background:var(--over)"></span>перестраховывается — человек ждёт зря</span>
+    </div>
+    <svg id="c1" viewBox="0 0 960 268" role="img"
+         aria-label="Отклонение фактического покрытия от обещанных 90 процентов: навигатор минус 14.3, справочник плюс 2.9, квантильная регрессия минус 0.5, бустинг минус 0.4."></svg>
+    <div class="tools">
+      <button data-tbl="t1" aria-expanded="false">Показать таблицу</button>
+      <button class="theme">Сменить тему</button>
+    </div>
+    <div id="t1" hidden></div>
+    <p class="note">
+      Одно число на все сутки — то, что показывает навигатор, — опаздывает почти в каждой
+      четвёртой поездке. Справочник и модель держат обещание, но по-разному: справочник
+      перестраховывается на три пункта, модель попадает почти точно.
+    </p>
+  </div>
+
+  <div class="card">
+    <h2>2. Свежие данные — расходуемый ресурс</h2>
+    <p class="lede">
+      Насколько модель точнее простого справочника «как обычно бывает в этот час»,
+      в зависимости от того, за сколько до выезда задан вопрос. Мера — квантильная
+      ошибка при τ = 0.9.
+    </p>
+    <svg id="c2" viewBox="0 0 960 330" role="img"
+         aria-label="Выигрыш модели над справочником падает с 86 процентов при нулевом горизонте до 3 процентов при двенадцати часах."></svg>
+    <div class="tools">
+      <button data-tbl="t2" aria-expanded="false">Показать таблицу</button>
+    </div>
+    <div id="t2" hidden></div>
+    <p class="note">
+      До получаса модель опирается на то, что творится на дороге прямо сейчас. С часа и
+      дальше на первые места среди её признаков выходят день недели и время суток — то есть
+      она начинает делать ровно то, что уже умеет справочник. Практический порог — около
+      полутора часов. Колебание на трёх часах — шум одного прогона, а не настоящий горб.
+    </p>
+  </div>
+
+  <p class="note" style="max-width:76ch">
+    Данные: Caltrans PeMS, январь–апрель 2026, 12 детекторов, 30 981 виртуальная поездка.
+    Разделение выборки строго по календарю. Полный отчёт — <code>docs/model-results.md</code>.
+  </p>
+</div>
+
+<div class="tip" id="tip" role="status" aria-live="polite"></div>
+
+<script>
+const NS = 'http://www.w3.org/2000/svg';
+const el = (t, a = {}) => { const n = document.createElementNS(NS, t);
+  for (const k in a) n.setAttribute(k, a[k]); return n; };
+
+const tip = document.getElementById('tip');
+function showTip(e, html) {
+  tip.innerHTML = html; tip.style.opacity = 1;
+  const r = tip.getBoundingClientRect();
+  let x = e.clientX + 14, y = e.clientY - r.height - 10;
+  if (x + r.width > innerWidth - 8) x = e.clientX - r.width - 14;
+  if (y < 8) y = e.clientY + 16;
+  tip.style.left = x + 'px'; tip.style.top = y + 'px';
+}
+const hideTip = () => { tip.style.opacity = 0; };
+
+/* ---------------- 1. Калибровка ---------------- */
+
+const PROMISE = 90;
+const CAL = [
+  { name: 'одно число, как навигатор', cov: 75.7, note: 'опаздывает в 24 поездках из 100' },
+  { name: 'справочник по типу дня и часу', cov: 92.9, note: 'просит лишние минуты' },
+  { name: 'квантильная регрессия', cov: 89.5, note: '' },
+  { name: 'градиентный бустинг', cov: 89.6, note: 'ближе всех к обещанию' },
+];
+
+(function calibration() {
+  const svg = document.getElementById('c1');
+  const M = { t: 14, r: 60, b: 58, l: 250 };
+  const W = 960, H = 268, iw = W - M.l - M.r, ih = H - M.t - M.b;
+  const dom = [-16, 5];
+  const x = v => M.l + (v - dom[0]) / (dom[1] - dom[0]) * iw;
+  const band = ih / CAL.length, bh = Math.min(24, band * 0.52);
+
+  for (let v = -15; v <= 5; v += 5) {
+    svg.appendChild(el('line', { x1: x(v), x2: x(v), y1: M.t, y2: M.t + ih,
+      stroke: 'var(--grid)', 'stroke-width': 1 }));
+    if (v === 0) continue;   // здесь стоит слово «обещание»
+    const t = el('text', { x: x(v), y: M.t + ih + 20, class: 'tick', 'text-anchor': 'middle' });
+    t.textContent = (v > 0 ? '+' : '') + v; svg.appendChild(t);
+  }
+  const zero = el('line', { x1: x(0), x2: x(0), y1: M.t - 4, y2: M.t + ih + 4,
+    stroke: 'var(--axis)', 'stroke-width': 2 });
+  svg.appendChild(zero);
+  const zl = el('text', { x: x(0), y: M.t + ih + 20, class: 'tick', 'text-anchor': 'middle',
+    style: 'fill:var(--ink-2);font-weight:600' });
+  zl.textContent = 'обещание'; svg.appendChild(zl);
+
+  CAL.forEach((d, i) => {
+    const dev = +(d.cov - PROMISE).toFixed(1);
+    const cy = M.t + band * i + band / 2;
+    const neg = dev < 0;
+    const x0 = Math.min(x(0), x(dev)), w = Math.abs(x(dev) - x(0));
+    const r = 4;
+    // прямоугольник со скруглением только на дальнем от базовой линии конце
+    const p = neg
+      ? `M${x0 + r},${cy - bh / 2} h${w - r} v${bh} h${-(w - r)} a${r},${r} 0 0 1 ${-r},${-r} v${-(bh - 2 * r)} a${r},${r} 0 0 1 ${r},${-r} z`
+      : `M${x0},${cy - bh / 2} h${w - r} a${r},${r} 0 0 1 ${r},${r} v${bh - 2 * r} a${r},${r} 0 0 1 ${-r},${r} h${-(w - r)} z`;
+    svg.appendChild(el('path', { d: p, fill: neg ? 'var(--under)' : 'var(--over)' }));
+
+    const name = el('text', { x: M.l - 16, y: cy + 4, class: 'cat', 'text-anchor': 'end' });
+    name.textContent = d.name; svg.appendChild(name);
+
+    const lab = el('text', {
+      x: neg ? x(dev) - 10 : x(dev) + 10, y: cy + 4, class: 'val',
+      'text-anchor': neg ? 'end' : 'start',
+    });
+    lab.textContent = (dev > 0 ? '+' : '') + dev.toFixed(1); svg.appendChild(lab);
+
+    const hit = el('rect', { x: M.l, y: cy - band / 2, width: iw, height: band, class: 'hit' });
+    hit.addEventListener('mousemove', e => showTip(e,
+      `<b>${d.name}</b><br>накрыла ${d.cov}% поездок<br>обещано 90%` +
+      (d.note ? `<br><span style="color:var(--muted)">${d.note}</span>` : '')));
+    hit.addEventListener('mouseleave', hideTip);
+    svg.appendChild(hit);
+  });
+
+  const cap = el('text', { x: M.l + iw / 2, y: M.t + ih + 46, class: 'tick', 'text-anchor': 'middle' });
+  cap.textContent = 'отклонение от обещания, процентных пунктов'; svg.appendChild(cap);
+
+  document.getElementById('t1').innerHTML =
+    '<table><thead><tr><th>Способ</th><th>Покрытие</th><th>Отклонение</th></tr></thead><tbody>' +
+    CAL.map(d => `<tr><td>${d.name}</td><td>${d.cov}%</td><td>${(d.cov - PROMISE > 0 ? '+' : '')}${(d.cov - PROMISE).toFixed(1)}</td></tr>`).join('') +
+    '</tbody></table>';
+})();
+
+/* ---------------- 2. Горизонт ---------------- */
+
+const HOR = [
+  { label: '0',    full: 'сразу',      gain: 86.1, lookup: 0.357, gbm: 0.050 },
+  { label: '15м',  full: '15 минут',   gain: 60.5, lookup: 0.357, gbm: 0.141 },
+  { label: '30м',  full: '30 минут',   gain: 39.0, lookup: 0.357, gbm: 0.218 },
+  { label: '1ч',   full: 'час',        gain: 17.1, lookup: 0.357, gbm: 0.296 },
+  { label: '1.5ч', full: 'полтора часа', gain: 7.4, lookup: 0.357, gbm: 0.330 },
+  { label: '2ч',   full: 'два часа',   gain: 7.3, lookup: 0.357, gbm: 0.331 },
+  { label: '3ч',   full: 'три часа',   gain: 12.4, lookup: 0.357, gbm: 0.313 },
+  { label: '6ч',   full: 'шесть часов', gain: 7.6, lookup: 0.358, gbm: 0.331 },
+  { label: '12ч',  full: 'двенадцать часов', gain: 3.5, lookup: 0.358, gbm: 0.345 },
+];
+
+(function horizon() {
+  const svg = document.getElementById('c2');
+  const M = { t: 20, r: 24, b: 76, l: 54 };
+  const W = 960, H = 330, iw = W - M.l - M.r, ih = H - M.t - M.b;
+  const ymax = 90;
+  const y = v => M.t + ih - v / ymax * ih;
+  const band = iw / HOR.length, bw = Math.min(24, band * 0.4);
+
+  for (let v = 0; v <= ymax; v += 15) {
+    svg.appendChild(el('line', { x1: M.l, x2: M.l + iw, y1: y(v), y2: y(v),
+      stroke: v === 0 ? 'var(--axis)' : 'var(--grid)', 'stroke-width': v === 0 ? 1.5 : 1 }));
+    const t = el('text', { x: M.l - 12, y: y(v) + 4, class: 'tick', 'text-anchor': 'end' });
+    t.textContent = v + '%'; svg.appendChild(t);
+  }
+
+  // порог: между 1ч и 1.5ч
+  const thr = M.l + band * 4;
+  svg.appendChild(el('line', { x1: thr, x2: thr, y1: M.t - 6, y2: M.t + ih,
+    stroke: 'var(--axis)', 'stroke-width': 1, 'stroke-dasharray': '3 4' }));
+  const th = el('text', { x: thr + 8, y: M.t + 6, class: 'tick', style: 'fill:var(--ink-2)' });
+  th.textContent = 'дальше свежесть почти не помогает'; svg.appendChild(th);
+
+  HOR.forEach((d, i) => {
+    const cx = M.l + band * i + band / 2;
+    const h = ih - (y(d.gain) - M.t), r = 4;
+    const p = `M${cx - bw / 2},${M.t + ih} v${-(h - r)} a${r},${r} 0 0 1 ${r},${-r}` +
+              ` h${bw - 2 * r} a${r},${r} 0 0 1 ${r},${r} v${h - r} z`;
+    svg.appendChild(el('path', { d: p, fill: 'var(--over)' }));
+
+    if (['0', '30м', '1ч', '12ч'].includes(d.label)) {
+      const v = el('text', { x: cx, y: y(d.gain) - 10, class: 'val', 'text-anchor': 'middle' });
+      v.textContent = d.gain.toFixed(1).replace('.0', '') + '%'; svg.appendChild(v);
+    }
+
+    const lx = el('text', { x: cx, y: M.t + ih + 22, class: 'tick', 'text-anchor': 'middle' });
+    lx.textContent = d.label; svg.appendChild(lx);
+
+    const hit = el('rect', { x: M.l + band * i, y: M.t, width: band, height: ih, class: 'hit' });
+    hit.addEventListener('mousemove', e => showTip(e,
+      `<b>за ${d.full} до выезда</b><br>справочник ${d.lookup.toFixed(3)}<br>` +
+      `модель ${d.gbm.toFixed(3)}<br>ошибка меньше на ${d.gain.toFixed(1)}%`));
+    hit.addEventListener('mouseleave', hideTip);
+    svg.appendChild(hit);
+  });
+
+  const ax = el('text', { x: M.l + iw / 2, y: M.t + ih + 52, class: 'tick', 'text-anchor': 'middle' });
+  ax.textContent = 'за сколько до выезда задан вопрос'; svg.appendChild(ax);
+
+  document.getElementById('t2').innerHTML =
+    '<table><thead><tr><th>Горизонт</th><th>Справочник</th><th>Модель</th><th>Выигрыш</th></tr></thead><tbody>' +
+    HOR.map(d => `<tr><td>${d.full}</td><td>${d.lookup.toFixed(3)}</td><td>${d.gbm.toFixed(3)}</td><td>${d.gain.toFixed(1)}%</td></tr>`).join('') +
+    '</tbody></table>';
+})();
+
+/* ---------------- органы управления ---------------- */
+
+document.querySelectorAll('[data-tbl]').forEach(b => {
+  b.addEventListener('click', () => {
+    const t = document.getElementById(b.dataset.tbl);
+    const open = t.hidden;
+    t.hidden = !open;
+    b.setAttribute('aria-expanded', String(open));
+    b.textContent = open ? 'Скрыть таблицу' : 'Показать таблицу';
+  });
+});
+document.querySelectorAll('.theme').forEach(b => {
+  b.addEventListener('click', () => {
+    const dark = matchMedia('(prefers-color-scheme: dark)').matches;
+    const cur = document.documentElement.getAttribute('data-theme') || (dark ? 'dark' : 'light');
+    document.documentElement.setAttribute('data-theme', cur === 'dark' ? 'light' : 'dark');
+  });
+});
+</script>
+</body>
+</html>

@@ -527,7 +527,7 @@ Freshness is the model's entire capital, and it is spent fast. Gain in pinball
 
 | Horizon | 0 | 15 min | 30 min | 60 min | 90 min | 2 h | 3 h | 6 h | 12 h |
 |---|---|---|---|---|---|---|---|---|---|
-| Gain | 86% | 60% | 39% | 17% | 7% | 7% | 12% | 8% | 3% |
+| Gain | 86% | 60% | 39% | 17% | 7% | 7% | 12% | 8% | 3.5% |
 
 **The practical threshold is about ninety minutes.** The feature rankings say it
 without needing the numbers: out to half an hour the model leans on `tt_lag0`;

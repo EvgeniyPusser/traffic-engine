@@ -81,7 +81,7 @@ same promise.
 
 **Where the advantage ends.** Freshness is the model's whole capital, and it is
 spent quickly. Gain over the lookup table by horizon: 86% at 0 minutes, 39% at
-30, 17% at 60, **7% at 90**, and 3% at twelve hours. The feature rankings say the
+30, 17% at 60, **7% at 90**, and 3.5% at twelve hours. The feature rankings say the
 same thing without words — past an hour, day-of-week and time-of-day rise to the
 top and the model is doing what the lookup table already does, only in a more
 complicated way.
@@ -106,6 +106,11 @@ Three results worth more than the win itself:
 - **Quantile crossing is reported before it is repaired** — up to 20% of rows at
   zero horizon. Sorting fixes it, and hiding it behind the sort would have
   concealed a real property of training one model per τ.
+
+Two pictures that carry the argument:
+[`docs/sr210-travel-time.html`](docs/sr210-travel-time.html) — the distribution
+itself; [`docs/promise-and-horizon.html`](docs/promise-and-horizon.html) — whether
+the promise holds, and how fast the advantage decays.
 
 Full model report: [`docs/model-results.md`](docs/model-results.md). Working
 notes, including every result that came out against expectation, are in
